@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tide Application Download</title>
+</head>
+<body>
+  <p>Click the link below to download the file:</p>
+
+  <!-- Link to download file -->
+  <a href="files/sample.pdf" download="tideman.exe>Download PDF</a>
+
+  <!-- Or as a button -->
+  <br><br>
+  <button onclick="window.location.href='tideman.exe'">Download as Button</button>
+</body>
+</html>
