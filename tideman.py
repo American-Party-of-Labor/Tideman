@@ -1,18 +1,6 @@
 
 
-import copy
-import math
-import random
-import numpy as np
-import networkx as nx
-from graphviz import Digraph
-import random
-import tkinter as tk
-from tkinter import ttk, messagebox
-import pandas
-import csv
-from PIL import Image, ImageTk
-from pathlib import Path
+
 '''
 #testing functions, must be commented out when actually in use
 def generate_ballot(options):
@@ -292,6 +280,8 @@ def process_ballot():
         messagebox.showerror("Input Error", "Please enter positive whole numbers in all input boxes.")
     except AssertionError:
         messagebox.showerror("Input Error", "Reminder no duplicate rankings and rankings range from 1 is best to N is worst for N candidates")
+    except Exception as e:
+        messagebox.showerror(str(e))
     
 def run_ballot_adding():
     
@@ -364,7 +354,9 @@ options = []
 current_election = any
 entry_fields = []
 
-
+import tkinter as tk
+from pathlib import Path
+from tkinter import ttk, messagebox
 
 root = tk.Tk()
 # Import the tcl file
@@ -386,17 +378,52 @@ root.tk.call("source", _path("forest-dark.tcl"))
 ttk.Style().theme_use('forest-dark')
 root.iconbitmap(_path("vote.ico"))
    
-root.title("Election Setup")
+root.title("Election")
 root.option_add("*tearOff", False)
-    
+
+
 root.columnconfigure(index=0, weight=3)
+
+progress = ttk.Progressbar(root, value=0, mode="determinate")
+progress.grid(row=2, column=0, padx=(10, 20), pady=(20, 0), sticky="ew")
+
+
+import copy
+progress.step(15)
+root.update()
+import math
+import random
+progress.step(15)
+root.update()
+import numpy as np
+progress.step(15)
+root.update()
+import networkx as nx
+progress.step(10)
+root.update()
+from graphviz import Digraph
+progress.step(15)
+root.update()
+import pandas
+progress.step(10)
+root.update()
+import csv
+progress.step(10)
+root.update()
+from PIL import Image, ImageTk
+progress.step(9)
+root.update()
+
+
+progress.grid_forget()
+
+
 root.columnconfigure(index=1, weight=1)
 
     
 root.rowconfigure(index=0, weight=1)
-root.rowconfigure(index=1, weight=1)
-root.rowconfigure(index=2, weight=1)
-    
+
+root.rowconfigure(index=2, weight=1)    
  
     
 election_setup_frame = ttk.LabelFrame(root, text="Election Setup", padding=(20, 10))

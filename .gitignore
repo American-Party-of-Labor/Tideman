@@ -1,0 +1,6 @@
+Election-Result-Graph
+Election-Result-Graph.png
+votes.csv
+
+build/*
+dist/*
