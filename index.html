@@ -6,6 +6,7 @@
 <title>Ranked Pairs Election</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/ico" href="/vote.ico">
 <style>
   /* ── reset & base ── */
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -21,9 +22,9 @@
 
   /* ── main card ── */
   .container{
-    background:#630000; /* dark red / black */
+    background:#630000; /* dark red */
     border-radius:28px;
-    padding:36px 40px 44px;
+    padding:10px 40px 10px;
     box-shadow:0 20px 40px rgba(0,0,0,.7), 0 0 0 2px #F6C313 inset;
     margin-bottom:24px;
   }
@@ -423,7 +424,7 @@
       return;
     }
 
-    options = shuffle(names);
+    options = names;
     numVoters = voters;
     ballots = [];
     buildBallotForm();
@@ -605,9 +606,11 @@
     winners = findWinners(adjacency);
 
     renderWinnerSeal();
-    renderLedger();
-    renderMatrix();
     renderGraph();
+    renderMatrix();
+    renderLedger();
+    
+   
   }
 
   // ---------- rendering ----------
