@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranked Pairs Election</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── reset & base ── */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #1a0a0a; /* deep black-red base */
+    font-family: Anton, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px;
+  }
+  .wrap{ max-width: 760px; width:100%; }
+
+  /* ── main card ── */
+  .container{
+    background:#630000; /* dark red / black */
+    border-radius:28px;
+    padding:36px 40px 44px;
+    box-shadow:0 20px 40px rgba(0,0,0,.7), 0 0 0 2px #F6C313 inset;
+    margin-bottom:24px;
+  }
+  h1{
+    color:#F6C313; font-weight:700; font-size:2rem; letter-spacing:1px;
+    text-align:center; margin-bottom:8px; text-shadow:0 2px 8px rgba(246,195,19,.25);
+  }
+  .subtitle{
+    color:#e6c87a; text-align:center; font-size:.95rem; margin-bottom:28px;
+    border-bottom:1px solid rgba(246,195,19,.25); padding-bottom:14px;
+    font-family:'Segoe UI', sans-serif; font-weight:300; letter-spacing:.3px;
+  }
+  h2{
+    color:#F6C313; font-weight:700; font-size:1.3rem; letter-spacing:.5px;
+    margin-bottom:6px; text-shadow:0 2px 8px rgba(246,195,19,.2);
+  }
+  .card-sub{
+    color:#e6c87a; font-family:'Segoe UI',sans-serif; font-size:.85rem;
+    margin-bottom:20px; font-weight:300; letter-spacing:.2px;
+  }
+
+  /* ── stage track ── */
+  .stage-track{
+    display:flex; justify-content:center; gap:6px; margin-bottom:20px;
+    font-family:'Segoe UI',sans-serif; font-size:.72rem; letter-spacing:.08em;
+    text-transform:uppercase; font-weight:700;
+  }
+  .stage-track .stage{
+    padding:6px 14px; border-radius:40px; color:#e6c87a;
+    border:1px solid rgba(246,195,19,.3); background:#3f0a0a;
+  }
+  .stage-track .stage.active{ background:#F6C313; color:#3f0000; border-color:#F6C313; }
+  .stage-track .stage.done{ color:#F6C313; border-color:#F6C313; }
+
+  /* ── label row ── */
+  label{
+    font-weight:600; font-size:1rem; color:#F6C313; letter-spacing:.5px;
+    display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    font-family:'Segoe UI',sans-serif;
+  }
+  label span.pill{
+    background:#AA0000; padding:2px 12px; border-radius:40px; font-size:.65rem;
+    color:#F6C313; font-weight:700; text-transform:uppercase; border:1px solid rgba(246,195,19,.3);
+  }
+
+  /* ── inputs ── */
+  input[type=number], input[type=text], select{
+    width:100%; padding:14px 16px; border-radius:16px; border:2px solid #8a1a1a;
+    background:#1e0a0a; color:#f5e6c8; font-family:'Courier New', monospace; font-size:14px;
+    box-shadow:inset 0 4px 12px rgba(0,0,0,.6);
+    transition:border-color .25s, box-shadow .25s;
+  }
+  input:focus, select:focus{
+    outline:none; border-color:#F6C313;
+    box-shadow:0 0 0 4px rgba(246,195,19,.2), inset 0 4px 12px rgba(0,0,0,.6);
+  }
+  input::placeholder{ color:#7a5a4a; font-family:'Segoe UI',sans-serif; font-size:13px; }
+
+  .field{ margin-bottom:18px; }
+  .row{ display:flex; gap:16px; flex-wrap:wrap; }
+
+  .options-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:16px; margin-bottom:8px;
+  }
+  .option-item{ position:relative; }
+  .option-item .num{
+    position:absolute; left:16px; top:15px; font-family:'Courier New',monospace;
+    font-size:12px; color:#c98a4a; pointer-events:none; z-index:1;
+  }
+  .option-item input{ padding-left:34px; }
+
+  /* ── buttons ── */
+  .btn-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; align-items:center; }
+  .btn{
+    background:#AA0000; border:1px solid rgba(246,195,19,.3); border-radius:40px;
+    padding:12px 22px; font-weight:700; font-size:.95rem; color:#F6C313; cursor:pointer;
+    transition:all .2s ease; box-shadow:0 4px 0 #3f0000; letter-spacing:.5px;
+    font-family:'Segoe UI',sans-serif;
+  }
+  .btn:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #3f0000, 0 8px 20px rgba(170,0,0,.4); background:#c20000; }
+  .btn:active{ transform:translateY(2px); box-shadow:0 2px 0 #3f0000; }
+  .btn-outline{ background:transparent; box-shadow:none; border:2px solid #AA0000; color:#F6C313; }
+  .btn-outline:hover{ background:#AA0000; box-shadow:0 4px 0 #3f0000; transform:translateY(-2px); }
+
+  .error-text{
+    color:#ff8f7a; font-size:.82rem; font-family:'Courier New',monospace;
+    margin-top:12px; display:none; background:#2a0f0f; border:1px solid #7a2a2a;
+    border-radius:10px; padding:10px 14px;
+  }
+  .hidden{ display:none !important; }
+
+  /* ── ballot progress ── */
+  .ballot-progress-label{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+  .ballot-progress-label .count{
+    color:#e6c87a; font-family:'Courier New',monospace; font-size:.85rem;
+    background:#3f0a0a; padding:4px 14px; border-radius:40px; border:1px solid #7a2a2a;
+  }
+  .progress-bar{ height:10px; width:100%; background:#1e0a0a; border-radius:40px; overflow:hidden; margin-bottom:24px; border:1px solid #8a1a1a;}
+  .progress-bar > div{ height:100%; background:#F6C313; transition:width .3s ease; box-shadow:0 0 10px rgba(246,195,19,.5); }
+
+  .rank-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:8px; }
+  .rank-row{
+    display:grid; grid-template-columns:34px 1fr 170px; gap:12px; align-items:center;
+    padding:10px 14px; border:2px solid #8a1a1a; border-radius:16px; background:#1e0a0a;
+  }
+  .rank-row .idx{ font-family:'Courier New',monospace; font-size:12px; color:#c98a4a; text-align:center; }
+  .rank-row .cand-name{ font-weight:600; font-size:14.5px; color:#f5e6c8; font-family:'Segoe UI',sans-serif; }
+
+  /* ── winner seal ── */
+  .seal{ text-align:center; padding:10px 10px 4px; }
+  .seal .stamp{
+    display:inline-block; border:3px solid #F6C313; border-radius:50%;
+    padding:22px 30px; transform:rotate(-3deg); background:#3f0a0a;
+    box-shadow:0 0 30px rgba(246,195,19,.25);
+  }
+  .seal .stamp .badge-label{
+    font-family:'Courier New',monospace; font-size:10px; letter-spacing:.22em;
+    text-transform:uppercase; color:#e6c87a;
+  }
+  .seal .stamp .name{
+    font-family:Anton,sans-serif; font-weight:700; font-size:1.6rem; margin-top:6px; color:#F6C313;
+    text-shadow:0 2px 8px rgba(246,195,19,.3);
+  }
+  .seal.tie .stamp{ border-color:#ff8f7a; box-shadow:0 0 30px rgba(255,143,122,.25); }
+  .seal.tie .stamp .name{ color:#ff8f7a; text-shadow:none; }
+
+  /* ── ledger ── */
+  .ledger{
+    display:flex; flex-direction:column; max-height:420px; overflow-y:auto;
+    border-top:1px solid rgba(246,195,19,.2);
+  }
+  .ledger-row{
+    display:grid; grid-template-columns:26px 1fr 96px 100px; align-items:center; gap:10px;
+    padding:11px 6px; border-bottom:1px solid rgba(246,195,19,.12); font-size:13px;
+    font-family:'Segoe UI',sans-serif;
+  }
+  .ledger-row .seq{ font-family:'Courier New',monospace; color:#c98a4a; font-size:11px; }
+  .ledger-row .desc{ font-weight:600; color:#f5e6c8; }
+  .ledger-row .desc .arrow{ color:#F6C313; margin:0 4px; }
+  .ledger-row .margin{ font-family:'Courier New',monospace; font-size:12px; text-align:right; color:#e6c87a; }
+  .stamp-tag{
+    font-family:'Courier New',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    text-align:center; padding:4px 10px; border-radius:40px; border:1.5px solid;
+  }
+  .stamp-tag.locked{ color:#F6C313; border-color:#F6C313; background:rgba(246,195,19,.1); }
+  .stamp-tag.struck{ color:#ff8f7a; border-color:#ff8f7a; background:rgba(255,143,122,.08); text-decoration:line-through; }
+  .stamp-tag.tie{ color:#e6c87a; border-color:#7a5a4a; background:rgba(122,90,74,.15); }
+
+  /* ── matrix table ── */
+  table.matrix{ border-collapse:collapse; width:100%; font-family:'Courier New',monospace; font-size:12.5px; }
+  table.matrix th, table.matrix td{ border:1px solid #7a2a2a; padding:8px 10px; text-align:center; color:#f5e6c8; }
+  table.matrix th{ background:#3f0a0a; color:#F6C313; font-weight:700; }
+  table.matrix td.diag{ background:repeating-linear-gradient(45deg, #1e0a0a, #1e0a0a 4px, #2a0f0f 4px, #2a0f0f 5px); }
+  table.matrix td.pos{ color:#7fd48a; }
+  table.matrix td.neg{ color:#ff8f7a; }
+
+  .graph-wrap{ overflow-x:auto; padding-top:6px; }
+  .legend{ display:flex; gap:18px; margin-top:14px; font-size:.78rem; color:#e6c87a; font-family:'Segoe UI',sans-serif; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .legend .swatch{ width:16px; height:3px; display:inline-block; }
+
+  footer.note{ text-align:center; margin-top:8px; font-size:.78rem; color:#b88a5a; font-family:'Segoe UI',sans-serif; }
+
+  /* scrollbar styling */
+  .ledger::-webkit-scrollbar{ width:8px; }
+  .ledger::-webkit-scrollbar-track{ background:#1e0a0a; border-radius:8px; }
+  .ledger::-webkit-scrollbar-thumb{ background:#AA0000; border-radius:8px; border:1px solid #F6C313; }
+  .ledger::-webkit-scrollbar-thumb:hover{ background:#c20000; }
+
+  @media (max-width:560px){
+    .container{ padding:24px 20px 30px; }
+    .rank-row{ grid-template-columns:28px 1fr 130px; }
+    .ledger-row{ grid-template-columns:20px 1fr 74px 82px; font-size:12px; }
+    h1{ font-size:1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="container">
+    <h1>RANKED PAIRS</h1>
+    <p class="subtitle">run a tideman-method election &mdash; rank candidates, lock in the strongest majorities, avoid cycles</p>
+    <div class="stage-track" id="stageTrack">
+      <div class="stage active" data-stage="setup">Setup</div>
+      <div class="stage" data-stage="voting">Balloting</div>
+      <div class="stage" data-stage="results">Tally</div>
+    </div>
+  </div>
+
+  <!-- ===================== STAGE 1: SETUP ===================== -->
+  <section id="stageSetup">
+    <div class="container">
+      <h2>Election setup</h2>
+      <p class="card-sub">Name the field and the number of voters expected.</p>
+
+      <div class="row">
+        <div class="field" style="max-width:220px;">
+          <label>Voters <span class="pill">count</span></label>
+          <input type="number" id="voterCount" min="2" step="1" placeholder="e.g. 5">
+        </div>
+      </div>
+
+      <label>Candidates <span class="pill">options</span></label>
+      <div class="options-grid" id="optionsGrid"></div>
+
+      <div class="btn-row">
+        <button class="btn" id="addOptionBtn" type="button">+ Add option</button>
+        <button class="btn btn-outline" id="removeOptionBtn" type="button">&minus; Remove option</button>
+      </div>
+
+      <div class="error-text" id="setupError"></div>
+      <div class="btn-row">
+        <button class="btn" id="beginVotingBtn" type="button">Begin balloting &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STAGE 2: VOTING ===================== -->
+  <section id="stageVoting" class="hidden">
+    <div class="container">
+      <div class="ballot-progress-label">
+        <h2 style="margin:0;">Cast ballot</h2>
+        <span class="count" id="ballotCount">1 / 1</span>
+      </div>
+      <div class="progress-bar"><div id="ballotProgressFill" style="width:0%;"></div></div>
+      <p class="card-sub" style="margin-top:-10px;">Rank every candidate you have an opinion on &mdash; 1 is your favorite. Leave a candidate &ldquo;Unranked&rdquo; if you have none. No two ranks may tie, except unranked.</p>
+
+      <div class="rank-list" id="rankList"></div>
+
+      <div class="error-text" id="ballotError"></div>
+      <div class="btn-row">
+        <button class="btn" id="castBallotBtn" type="button">Cast vote</button>
+        <button class="btn btn-outline" id="backToSetupBtn" type="button">&larr; Restart setup</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STAGE 3: RESULTS ===================== -->
+  <section id="stageResults" class="hidden">
+
+    <div class="container">
+      <div class="seal" id="winnerSeal"></div>
+    </div>
+
+    <div class="container">
+      <h2>Ledger of resolved pairings</h2>
+      <p class="card-sub">Read top to bottom &mdash; the widest majorities are decided first. A pairing is struck only when honoring it would create a cycle among already-locked results.</p>
+      <div class="ledger" id="ledger"></div>
+    </div>
+
+    <div class="container">
+      <h2>Result graph</h2>
+      <p class="card-sub">An arrow from A to B means A's win over B was locked into the record. The candidate with no arrows pointing in from anyone is the winner.</p>
+      <div class="graph-wrap"><svg id="graphSvg" width="100%" height="360"></svg></div>
+      <div class="legend">
+        <span><span class="swatch" style="background:#F6C313;"></span>Locked defeat</span>
+        <span><span class="swatch" style="background:#AA0000;"></span>Winner</span>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2>Margin of victory</h2>
+      <p class="card-sub">Row over column. Positive (green) &mdash; row beat column; negative (red) &mdash; column beat row; 0 is a tie.</p>
+      <div style="overflow-x:auto;"><table class="matrix" id="matrixTable"></table></div>
+      <div class="btn-row" style="justify-content:center; margin-top:26px;">
+        <button class="btn btn-outline" id="downloadCsvBtn" type="button">Download ballots (CSV)</button>
+        <button class="btn" id="newElectionBtn" type="button">Start a new election</button>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="note">Ballots are held only in this browser tab and are shuffled before tallying, so no one can trace a result back to the order votes were cast.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const UNRANKED = 1000;
+
+  // ---------- state ----------
+  let options = [];
+  let numVoters = 0;
+  let ballots = [];
+  let matrix = [];
+  let pairs = [];
+  let ledgerLog = [];
+  let adjacency = null;
+  let winners = [];
+
+  // ---------- DOM refs ----------
+  const optionsGrid = document.getElementById('optionsGrid');
+  const addOptionBtn = document.getElementById('addOptionBtn');
+  const removeOptionBtn = document.getElementById('removeOptionBtn');
+  const voterCountInput = document.getElementById('voterCount');
+  const setupError = document.getElementById('setupError');
+  const beginVotingBtn = document.getElementById('beginVotingBtn');
+
+  const stageSetup = document.getElementById('stageSetup');
+  const stageVoting = document.getElementById('stageVoting');
+  const stageResults = document.getElementById('stageResults');
+  const stageTrackEls = document.querySelectorAll('#stageTrack .stage');
+
+  const ballotCount = document.getElementById('ballotCount');
+  const ballotProgressFill = document.getElementById('ballotProgressFill');
+  const rankList = document.getElementById('rankList');
+  const ballotError = document.getElementById('ballotError');
+  const castBallotBtn = document.getElementById('castBallotBtn');
+  const backToSetupBtn = document.getElementById('backToSetupBtn');
+
+  const winnerSeal = document.getElementById('winnerSeal');
+  const ledgerEl = document.getElementById('ledger');
+  const matrixTable = document.getElementById('matrixTable');
+  const graphSvg = document.getElementById('graphSvg');
+  const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+  const newElectionBtn = document.getElementById('newElectionBtn');
+
+  // ---------- option row management (setup) ----------
+  function makeOptionRow(index){
+    const div = document.createElement('div');
+    div.className = 'option-item';
+    div.innerHTML = '<span class="num">'+ (index+1) +'</span><input type="text" placeholder="Candidate name" />';
+    return div;
+  }
+  function refreshOptionNumbers(){
+    optionsGrid.querySelectorAll('.option-item').forEach((el,i)=>{
+      el.querySelector('.num').textContent = (i+1);
+    });
+  }
+  function addOptionRow(){
+    optionsGrid.appendChild(makeOptionRow(optionsGrid.children.length));
+  }
+  function removeOptionRow(){
+    if (optionsGrid.children.length <= 2){
+      flashError(setupError, 'An election needs at least two candidates.');
+      return;
+    }
+    optionsGrid.removeChild(optionsGrid.lastElementChild);
+    refreshOptionNumbers();
+  }
+  addOptionBtn.addEventListener('click', addOptionRow);
+  removeOptionBtn.addEventListener('click', removeOptionRow);
+  addOptionRow(); addOptionRow(); addOptionRow();
+
+  function flashError(el, msg){
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function clearError(el){ el.style.display='none'; el.textContent=''; }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function setStage(name){
+    stageSetup.classList.toggle('hidden', name!=='setup');
+    stageVoting.classList.toggle('hidden', name!=='voting');
+    stageResults.classList.toggle('hidden', name!=='results');
+    stageTrackEls.forEach(el=>{
+      const s = el.dataset.stage;
+      el.classList.remove('active','done');
+      const order = ['setup','voting','results'];
+      if (s===name) el.classList.add('active');
+      else if (order.indexOf(s) < order.indexOf(name)) el.classList.add('done');
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // ---------- Stage 1 -> 2 ----------
+  beginVotingBtn.addEventListener('click', function(){
+    clearError(setupError);
+    const nameInputs = Array.from(optionsGrid.querySelectorAll('input'));
+    const names = nameInputs.map(i=>i.value.trim());
+
+    if (names.some(n=>n==='')){
+      flashError(setupError, 'No candidate name can be left blank.');
+      return;
+    }
+    const seen = new Set();
+    for (const n of names){
+      if (seen.has(n)){
+        flashError(setupError, 'Candidate names must be unique: "'+n+'" appears more than once.');
+        return;
+      }
+      seen.add(n);
+    }
+    const voters = parseInt(voterCountInput.value, 10);
+    if (!Number.isFinite(voters) || voters < 2){
+      flashError(setupError, 'Enter a whole number of voters, at least 2.');
+      return;
+    }
+
+    options = shuffle(names);
+    numVoters = voters;
+    ballots = [];
+    buildBallotForm();
+    updateBallotProgress();
+    setStage('voting');
+  });
+
+  // ---------- Stage 2: voting ----------
+  function buildBallotForm(){
+    rankList.innerHTML = '';
+    options.forEach((name, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'rank-row';
+      const select = document.createElement('select');
+      select.dataset.candidateIndex = idx;
+      const optUnranked = document.createElement('option');
+      optUnranked.value = UNRANKED;
+      optUnranked.textContent = 'Unranked';
+      select.appendChild(optUnranked);
+      for (let r=1;r<=options.length;r++){
+        const o = document.createElement('option');
+        o.value = r;
+        o.textContent = 'Rank ' + r + (r===1 ? ' (favorite)' : '');
+        select.appendChild(o);
+      }
+      row.innerHTML = '<span class="idx">'+(idx+1)+'</span><span class="cand-name"></span>';
+      row.querySelector('.cand-name').textContent = name;
+      row.appendChild(select);
+      rankList.appendChild(row);
+    });
+  }
+
+  function updateBallotProgress(){
+    const cast = ballots.length;
+    ballotCount.textContent = (cast+1) + ' / ' + numVoters;
+    ballotProgressFill.style.width = Math.round((cast/numVoters)*100) + '%';
+  }
+
+  castBallotBtn.addEventListener('click', function(){
+    clearError(ballotError);
+    const selects = Array.from(rankList.querySelectorAll('select'));
+    const rankings = selects.map(s=>parseInt(s.value,10));
+
+    const seen = new Map();
+    for (const r of rankings){
+      if (r !== UNRANKED){
+        if (seen.has(r)){
+          flashError(ballotError, 'Two candidates can\'t share rank ' + r + '. Every rank from 1 to N must be used at most once.');
+          return;
+        }
+        seen.set(r, true);
+      }
+    }
+
+    ballots.push({ rankings: rankings });
+
+    if (ballots.length === numVoters){
+      runTally();
+      setStage('results');
+    } else {
+      updateBallotProgress();
+      selects.forEach(s=> s.value = UNRANKED);
+    }
+  });
+
+  backToSetupBtn.addEventListener('click', function(){
+    ballots = [];
+    setStage('setup');
+  });
+
+  newElectionBtn.addEventListener('click', function(){
+    ballots = [];
+    setStage('setup');
+  });
+
+  // ---------- Tally: mirrors the Ballot / Election / Pair / graph logic ----------
+  function computeMatrix(){
+    const n = options.length;
+    const m = Array.from({length:n}, ()=>Array(n).fill(0));
+    for (const b of ballots){
+      for (let i=0;i<n;i++){
+        for (let j=i+1;j<n;j++){
+          if (b.rankings[i] < b.rankings[j]) m[i][j] -= 1;
+          else if (b.rankings[i] > b.rankings[j]) m[i][j] += 1;
+        }
+      }
+    }
+    return m;
+  }
+
+  function buildPairs(){
+    const n = options.length;
+    const list = [];
+    for (let i=0;i<n;i++){
+      for (let j=i+1;j<n;j++){
+        const val = matrix[i][j];
+        const margin = Math.abs(val);
+        let winner, loser, tie=false;
+        if (val === 0){ winner = options[j]; loser = options[i]; tie = true; }
+        else if (val > 0){ winner = options[j]; loser = options[i]; }
+        else { winner = options[i]; loser = options[j]; }
+        list.push({ winner, loser, margin, tie });
+      }
+    }
+    list.sort((a,b)=> b.margin - a.margin);
+    return list;
+  }
+
+  function reach(adj, from, to){
+    const seen = new Set();
+    const stack = [from];
+    while (stack.length){
+      const cur = stack.pop();
+      if (cur === to) return true;
+      if (seen.has(cur)) continue;
+      seen.add(cur);
+      for (const nxt of adj.get(cur)) stack.push(nxt);
+    }
+    return false;
+  }
+
+  function buildGraph(){
+    const adj = new Map(options.map(o=>[o, new Set()]));
+    const log = [];
+    for (const p of pairs){
+      if (p.tie){
+        log.push({ pair: p, status: 'tie' });
+        continue;
+      }
+      if (reach(adj, p.loser, p.winner)){
+        log.push({ pair: p, status: 'struck' });
+      } else {
+        adj.get(p.winner).add(p.loser);
+        log.push({ pair: p, status: 'locked' });
+      }
+    }
+    return { adj, log };
+  }
+
+  function findWinners(adj){
+    const w = [];
+    for (const node of options){
+      let hasAncestor = false;
+      for (const other of options){
+        if (other === node) continue;
+        if (reach(adj, other, node)){ hasAncestor = true; break; }
+      }
+      if (!hasAncestor) w.push(node);
+    }
+    return w;
+  }
+
+  function computeLayers(adj){
+    const indeg = new Map(options.map(o=>[o,0]));
+    for (const o of options) for (const t of adj.get(o)) indeg.set(t, indeg.get(t)+1);
+    const layer = new Map(options.map(o=>[o,0]));
+    const indegCopy = new Map(indeg);
+    const queue = options.filter(o=> indegCopy.get(o)===0);
+    let guard = 0;
+    while (queue.length && guard < options.length*options.length+5){
+      guard++;
+      const n = queue.shift();
+      for (const t of adj.get(n)){
+        layer.set(t, Math.max(layer.get(t), layer.get(n)+1));
+        indegCopy.set(t, indegCopy.get(t)-1);
+        if (indegCopy.get(t)===0) queue.push(t);
+      }
+    }
+    return layer;
+  }
+
+  function runTally(){
+    ballots = shuffle(ballots);
+    matrix = computeMatrix();
+    pairs = buildPairs();
+    const built = buildGraph();
+    adjacency = built.adj;
+    ledgerLog = built.log;
+    winners = findWinners(adjacency);
+
+    renderWinnerSeal();
+    renderLedger();
+    renderMatrix();
+    renderGraph();
+  }
+
+  // ---------- rendering ----------
+  function renderWinnerSeal(){
+    winnerSeal.parentElement.classList.toggle('tie', winners.length !== 1);
+    if (winners.length === 1){
+      winnerSeal.innerHTML =
+        '<div class="stamp"><div class="badge-label">Certified winner</div><div class="name">'+escapeHtml(winners[0])+'</div></div>';
+    } else {
+      winnerSeal.innerHTML =
+        '<div class="stamp"><div class="badge-label">Tied for first</div><div class="name">'+winners.map(escapeHtml).join(' &amp; ')+'</div></div>';
+    }
+  }
+
+  function renderLedger(){
+    ledgerEl.innerHTML = '';
+    ledgerLog.forEach((entry, i)=>{
+      const row = document.createElement('div');
+      row.className = 'ledger-row';
+      let desc, tagClass, tagText;
+      if (entry.status === 'tie'){
+        desc = escapeHtml(entry.pair.a) + ' <span class="arrow">=</span> ' + escapeHtml(entry.pair.b);
+        tagClass = 'tie'; tagText = 'Tie';
+      } else {
+        desc = escapeHtml(entry.pair.winner) + ' <span class="arrow">&rarr;</span> ' + escapeHtml(entry.pair.loser);
+        if (entry.status === 'locked'){ tagClass='locked'; tagText='Locked'; }
+        else { tagClass='struck'; tagText='Struck'; }
+      }
+      row.innerHTML =
+        '<span class="seq">'+(i+1)+'</span>'+
+        '<span class="desc">'+desc+'</span>'+
+        '<span class="margin">'+ (entry.pair.margin===0? '&mdash;' : ('margin '+entry.pair.margin)) +'</span>'+
+        '<span class="stamp-tag '+tagClass+'">'+tagText+'</span>';
+      ledgerEl.appendChild(row);
+    });
+  }
+
+  function renderMatrix(){
+    const n = options.length;
+    let html = '<tr><th></th>';
+    options.forEach(o=> html += '<th>'+escapeHtml(o)+'</th>');
+    html += '</tr>';
+    for (let i=0;i<n;i++){
+      html += '<tr><th>'+escapeHtml(options[i])+'</th>';
+      for (let j=0;j<n;j++){
+        if (i===j){ html += '<td class="diag"></td>'; continue; }
+        let val;
+        if (j>i) val = matrix[i][j];
+        else val = -matrix[j][i];
+        const cls = val>0 ? 'pos' : (val<0 ? 'neg' : '');
+        html += '<td class="'+cls+'">'+ (val>0?'+':'') + val + '</td>';
+      }
+      html += '</tr>';
+    }
+    matrixTable.innerHTML = html;
+  }
+
+  function renderGraph(){
+    const layer = computeLayers(adjacency);
+    const byLayer = new Map();
+    options.forEach(o=>{
+      const l = layer.get(o);
+      if (!byLayer.has(l)) byLayer.set(l, []);
+      byLayer.get(l).push(o);
+    });
+    const maxLayer = Math.max(...Array.from(byLayer.keys()));
+    const colWidth = 190;
+    const rowHeight = 64;
+    const maxRows = Math.max(...Array.from(byLayer.values()).map(a=>a.length));
+    const width = Math.max(560, (maxLayer+1)*colWidth + 40);
+    const height = Math.max(260, maxRows*rowHeight + 60);
+    graphSvg.setAttribute('viewBox', '0 0 '+width+' '+height);
+    graphSvg.setAttribute('width', width);
+    graphSvg.setAttribute('height', height);
+
+    const pos = new Map();
+    for (const [l, nodes] of byLayer.entries()){
+      const colX = 30 + l*colWidth + 70;
+      nodes.forEach((name, i)=>{
+        const totalH = nodes.length*rowHeight;
+        const startY = (height-totalH)/2 + rowHeight/2;
+        pos.set(name, { x: colX, y: startY + i*rowHeight });
+      });
+    }
+
+    let svg = '';
+    svg += '<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">'+
+           '<path d="M0,0 L0,6 L9,3 z" fill="#F6C313" /></marker></defs>';
+
+    for (const [from, targets] of adjacency.entries()){
+      const p1 = pos.get(from);
+      for (const to of targets){
+        const p2 = pos.get(to);
+        if (!p1 || !p2) continue;
+        const midX = (p1.x+p2.x)/2;
+        svg += '<path d="M '+(p1.x+42)+' '+p1.y+' C '+midX+' '+p1.y+', '+midX+' '+p2.y+', '+(p2.x-48)+' '+p2.y+'" '+
+               'fill="none" stroke="#F6C313" stroke-width="1.8" marker-end="url(#arrow)" opacity="0.9" />';
+      }
+    }
+    for (const name of options){
+      const p = pos.get(name);
+      const isWinner = winners.includes(name);
+      svg += '<g>';
+      svg += '<rect x="'+(p.x-42)+'" y="'+(p.y-18)+'" width="84" height="36" rx="18" '+
+             'fill="'+(isWinner? '#AA0000' : '#1e0a0a')+'" stroke="'+(isWinner? '#F6C313' : '#8a1a1a')+'" stroke-width="'+(isWinner?2.5:1.5)+'" />';
+      svg += '<text x="'+p.x+'" y="'+(p.y+4)+'" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11.5" '+
+             'font-weight="'+(isWinner?700:500)+'" fill="'+(isWinner? '#F6C313':'#f5e6c8')+'">'+truncate(escapeHtml(name),12)+'</text>';
+      svg += '</g>';
+    }
+    graphSvg.innerHTML = svg;
+  }
+
+  function truncate(s, n){ return s.length>n ? s.slice(0,n-1)+'\u2026' : s; }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------- CSV export (mirrors build_csv) ----------
+  downloadCsvBtn.addEventListener('click', function(){
+    const rows = [];
+    const header = ['candidates'];
+    for (let i=1;i<=ballots.length;i++) header.push(' vote '+i);
+    rows.push(header);
+    options.forEach((name, i)=>{
+      const row = [name];
+      ballots.forEach(b=> row.push(String(b.rankings[i])));
+      rows.push(row);
+    });
+    const csv = rows.map(r=> r.map(cell=>{
+      const s = String(cell);
+      return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+    }).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'votes.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+})();
+</script>
+</body>
+</html>
